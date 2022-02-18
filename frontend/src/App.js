@@ -39,11 +39,25 @@ function App() {
       const provider = new ethers.providers.Web3Provider(ethereum);
       const signer = provider.getSigner();
       const TodoContract = new ethers.Contract(
-        "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "0x5FbDB2315678afecb367f032d93F642f64180aa3",
         TodoListContractabi.abi,
         signer
       );
       TodoContract.addToDoItem(value);
+    }
+  };
+
+  const removeItem = async (id) => {
+    const { ethereum } = window;
+    if (ethereum) {
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      const signer = provider.getSigner();
+      const TodoContract = new ethers.Contract(
+        "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        TodoListContractabi.abi,
+        signer
+      );
+      TodoContract.removeItem(id);
     }
   };
 
@@ -53,7 +67,7 @@ function App() {
       const provider = new ethers.providers.Web3Provider(ethereum);
       const signer = provider.getSigner();
       const TodoContract = new ethers.Contract(
-        "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "0x5FbDB2315678afecb367f032d93F642f64180aa3",
         TodoListContractabi.abi,
         signer
       );
@@ -66,17 +80,16 @@ function App() {
     const todoItems = new Array();
     const { ethereum } = window;
     if (ethereum) {
+      console.log("okee");
       const provider = new ethers.providers.Web3Provider(ethereum);
       const signer = provider.getSigner();
       const TodoContract = new ethers.Contract(
-        "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "0x5FbDB2315678afecb367f032d93F642f64180aa3",
         TodoListContractabi.abi,
         signer
       );
 
-      const todocount = await TodoContract.tasks().length();
-      console.log(todocount);
-
+      const todocount = await TodoContract.taskCounter();
       for (let i = 0; i < todocount; i++) {
         let value = await TodoContract.tasks(i);
         todoItems.push({
@@ -85,7 +98,6 @@ function App() {
           completed: value.completed,
         });
       }
-
       return todoItems;
     }
   };
@@ -134,11 +146,20 @@ function App() {
       setTodoItems(updatedList);
     });
 
+  contract &&
+    contract.on("TodoItemRemoved", (id) => {
+      const updatedList = todoItems.filter((item, index) => {
+        if (item.id.toNumber() !== id.toNumber()) {
+          return true;
+        }
+      });
+
+      setTodoItems(updatedList);
+    });
+
   return (
     <div className="App">
-      <h1>LETS BUILD SOME SHIT!!!!</h1>
-      <h2>WalletStatus:</h2>
-      <p>{walletStatus}</p>
+      <h1>My first blockchain Todolist</h1>
       <h2>Current Account:</h2> {currentAccount}
       <h2>TodoItems</h2>
       <form
@@ -167,7 +188,13 @@ function App() {
                   }}
                 />
                 {item.content} : {i + 1}
-                <button>remove</button>
+                <button
+                  onClick={(e) => {
+                    removeItem(item.id.toNumber());
+                  }}
+                >
+                  remove
+                </button>
               </li>
             );
           })}

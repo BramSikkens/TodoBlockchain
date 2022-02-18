@@ -14,7 +14,7 @@ contract TodoList {
     event TodoToggled(uint256 id, bool completed);
     event TodoItemRemoved(uint256 id);
 
-    mapping(uint256 => Task) public tasks;
+    Task[] public tasks;
     uint256 public taskCounter = 0;
 
     constructor() {
@@ -22,13 +22,17 @@ contract TodoList {
     }
 
     function addToDoItem(string memory _content) public {
-        tasks[taskCounter] = Task(taskCounter, _content, false);
+        tasks.push(Task(taskCounter, _content, false));
         emit TodoAdded(taskCounter, _content, false);
         taskCounter++;
     }
 
     function returnToItem(uint256 id) external view returns (Task memory) {
-        return tasks[id];
+        for (uint256 i; i < taskCounter; i++) {
+            if (tasks[i].id == id) {
+                return tasks[i];
+            }
+        }
     }
 
     function toggleItem(uint256 _id) public {
@@ -39,7 +43,13 @@ contract TodoList {
     }
 
     function removeItem(uint256 _id) public {
-        delete tasks[_id];
+        for (uint256 i; i < taskCounter; i++) {
+            if (tasks[i].id == _id) {
+                delete tasks[i];
+                break;
+            }
+        }
+        taskCounter--;
         emit TodoItemRemoved(_id);
     }
 }
